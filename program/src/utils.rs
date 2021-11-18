@@ -1,9 +1,20 @@
+use crate::{error::NounsError, state::NounsSettings};
+use borsh::BorshDeserialize;
 use metaplex_token_metadata::state::{EDITION, PREFIX};
-use solana_program::pubkey::Pubkey;
+use solana_program::{
+    account_info::AccountInfo, entrypoint::ProgramResult, program_error::ProgramError,
+    pubkey::Pubkey,
+};
+
+pub const SETTINGS_SEED: &str = "nouns_settings";
 
 pub struct Pda;
 
 impl Pda {
+    pub fn settings_pubkey_with_bump(program_id: &Pubkey, authority: &Pubkey) -> (Pubkey, u8) {
+        Pubkey::find_program_address(&[SETTINGS_SEED.as_bytes(), authority.as_ref()], program_id)
+    }
+
     pub fn metadata_pubkey(mint: &Pubkey) -> Pubkey {
         let seeds = &[
             PREFIX.as_bytes(),
@@ -24,4 +35,50 @@ impl Pda {
 
         Pubkey::find_program_address(seeds, &metaplex_token_metadata::ID).0
     }
+}
+
+pub fn get_settings_checked<'info>(
+    program_id: &Pubkey,
+    authority_info: &AccountInfo<'info>,
+    settings_info: &AccountInfo<'info>,
+) -> Result<NounsSettings, ProgramError> {
+    assert_settings(program_id, authority_info, settings_info)?;
+    let settings = NounsSettings::try_from_slice(&settings_info.data.borrow());
+    settings.map_err(|_| NounsError::WrongSettingsAccount.into())
+}
+
+pub fn assert_settings(
+    program_id: &Pubkey,
+    authority_info: &AccountInfo,
+    settings_info: &AccountInfo,
+) -> ProgramResult {
+    let settings_pubkey = Pda::settings_pubkey_with_bump(program_id, authority_info.key).0;
+    if *settings_info.key != settings_pubkey {
+        return Err(NounsError::WrongSettingsAccount.into());
+    }
+
+    Ok(())
+}
+
+pub fn assert_authority(settings: &NounsSettings, authority_info: &AccountInfo) -> ProgramResult {
+    if !authority_info.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    if *authority_info.key != settings.authority {
+        return Err(NounsError::WrongAuthority.into());
+    }
+
+    Ok(())
+}
+
+pub fn assert_secondary_creator(
+    settings: &NounsSettings,
+    secondary_creator_info: &AccountInfo,
+) -> ProgramResult {
+    if *secondary_creator_info.key != settings.secondary_creator {
+        return Err(NounsError::WrongSecondaryCreator.into());
+    }
+
+    Ok(())
 }

@@ -1,16 +1,13 @@
 use super::delay;
+use borsh::BorshDeserialize;
 use metaplex_token_metadata::state::{MasterEditionV2, Metadata};
 use nouns::{
-    instruction::{MintNftArgs, NounsInstructions},
+    instruction::{MintNftArgs, NounsInstructions, SettingsArgs},
+    state::NounsSettings,
     utils::Pda,
 };
 use solana_client::{client_error::ClientError, rpc_client::RpcClient};
-use solana_program::{
-    borsh::try_from_slice_unchecked,
-    instruction::{AccountMeta, Instruction},
-    pubkey::Pubkey,
-    system_program,
-};
+use solana_program::{borsh::try_from_slice_unchecked, pubkey::Pubkey, system_program};
 use solana_sdk::{
     commitment_config::CommitmentConfig,
     signature::{Keypair, Signature},
@@ -22,37 +19,8 @@ use std::time::Duration;
 
 pub struct NounsRpcClient {
     client: RpcClient,
+    fee_payer: Keypair,
     program_id: Pubkey,
-}
-
-pub struct MintRawArguments {
-    pub creator: Keypair,
-    pub mint: Keypair,
-    pub token_account: Keypair,
-    pub metadata: Pubkey,
-    pub edition: Pubkey,
-    pub system_program: Pubkey,
-    pub token_program: Pubkey,
-    pub rent_program: Pubkey,
-    pub metaplex_program: Pubkey,
-    pub mint_args: MintNftArgs,
-}
-
-impl Clone for MintRawArguments {
-    fn clone(&self) -> Self {
-        MintRawArguments {
-            creator: Keypair::from_bytes(&self.creator.to_bytes()).unwrap(),
-            mint: Keypair::from_bytes(&self.mint.to_bytes()).unwrap(),
-            token_account: Keypair::from_bytes(&self.token_account.to_bytes()).unwrap(),
-            metadata: self.metadata,
-            edition: self.edition,
-            system_program: self.system_program,
-            token_program: self.token_program,
-            rent_program: self.rent_program,
-            metaplex_program: self.metaplex_program,
-            mint_args: self.mint_args.clone(),
-        }
-    }
 }
 
 impl NounsRpcClient {
@@ -68,10 +36,14 @@ impl NounsRpcClient {
             CommitmentConfig::confirmed(),
         );
 
-        NounsRpcClient {
+        let client = NounsRpcClient {
             client,
+            fee_payer: Keypair::new(),
             program_id: *program_id,
-        }
+        };
+
+        client.airdrop(&client.fee_payer, 1_000_000_000);
+        client
     }
 
     pub fn airdrop(&self, wallet: &Keypair, lamports: u64) {
@@ -110,28 +82,43 @@ impl NounsRpcClient {
         self.client.get_balance(wallet).unwrap()
     }
 
-    pub fn mint_nft_raw(&self, raw_args: &MintRawArguments) -> Result<Signature, ClientError> {
-        let ix = Instruction::new_with_borsh(
-            self.program_id,
-            &NounsInstructions::MintNft(raw_args.mint_args.clone()),
-            vec![
-                AccountMeta::new(raw_args.creator.pubkey(), true),
-                AccountMeta::new(raw_args.mint.pubkey(), true),
-                AccountMeta::new(raw_args.token_account.pubkey(), true),
-                AccountMeta::new(raw_args.metadata, false),
-                AccountMeta::new(raw_args.edition, false),
-                AccountMeta::new_readonly(raw_args.system_program, false),
-                AccountMeta::new_readonly(raw_args.token_program, false),
-                AccountMeta::new_readonly(raw_args.rent_program, false),
-                AccountMeta::new_readonly(raw_args.metaplex_program, false),
-            ],
+    pub fn initialize_nouns(
+        &self,
+        authority: &Keypair,
+        secondary_creator: &Keypair,
+        initialize_args: &SettingsArgs,
+    ) -> Result<Signature, ClientError> {
+        let ix = NounsInstructions::initialize_nouns(
+            &self.program_id,
+            &authority.pubkey(),
+            &secondary_creator.pubkey(),
+            initialize_args,
         );
 
         let blockhash = self.client.get_recent_blockhash().unwrap().0;
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&raw_args.creator.pubkey()),
-            &[&raw_args.creator, &raw_args.mint, &raw_args.token_account],
+            Some(&self.fee_payer.pubkey()),
+            &vec![authority, &self.fee_payer, secondary_creator],
+            blockhash,
+        );
+
+        self.client.send_and_confirm_transaction_with_spinner(&tx)
+    }
+
+    pub fn update_settings(
+        &self,
+        authority: &Keypair,
+        settings: &SettingsArgs,
+    ) -> Result<Signature, ClientError> {
+        let ix =
+            NounsInstructions::update_settings(&self.program_id, &authority.pubkey(), settings);
+
+        let blockhash = self.client.get_recent_blockhash().unwrap().0;
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&self.fee_payer.pubkey()),
+            &[authority, &self.fee_payer],
             blockhash,
         );
 
@@ -140,14 +127,16 @@ impl NounsRpcClient {
 
     pub fn mint_nft(
         &self,
-        creator: &Keypair,
+        authority: &Keypair,
+        secondary_creator: &Keypair,
         mint: &Keypair,
         token_account: &Keypair,
         mint_args: &MintNftArgs,
     ) -> Result<Signature, ClientError> {
         let ix = NounsInstructions::mint_nft(
             &self.program_id,
-            &creator.pubkey(),
+            &authority.pubkey(),
+            &secondary_creator.pubkey(),
             &mint.pubkey(),
             &token_account.pubkey(),
             mint_args,
@@ -156,12 +145,24 @@ impl NounsRpcClient {
         let blockhash = self.client.get_recent_blockhash().unwrap().0;
         let tx = Transaction::new_signed_with_payer(
             &[ix],
-            Some(&creator.pubkey()),
-            &[creator, mint, token_account],
+            Some(&self.fee_payer.pubkey()),
+            &vec![
+                authority,
+                &self.fee_payer,
+                secondary_creator,
+                mint,
+                token_account,
+            ],
             blockhash,
         );
 
         self.client.send_and_confirm_transaction_with_spinner(&tx)
+    }
+
+    pub fn get_settings(&self, authority: &Pubkey) -> NounsSettings {
+        let settings_pubkey = Pda::settings_pubkey_with_bump(&self.program_id, authority).0;
+        let settings_data = self.client.get_account_data(&settings_pubkey).unwrap();
+        NounsSettings::try_from_slice(&settings_data).unwrap()
     }
 
     pub fn get_metadata(&self, mint: &Pubkey) -> Metadata {

@@ -7,7 +7,25 @@ use solana_program::{
 use thiserror::Error;
 
 #[derive(Clone, Debug, Error, FromPrimitive)]
-pub enum NounsError {}
+pub enum NounsError {
+    #[error("Primary and secondary creators must be different")]
+    PrimareAndSecondaryAreSame,
+
+    #[error("Percentage is in the range [0; 100]")]
+    PercentageLimitExceeded,
+
+    #[error("Settings account has wrong pubkey")]
+    WrongSettingsAccount,
+
+    #[error("Wrong authority")]
+    WrongAuthority,
+
+    #[error("Wrong primary creator")]
+    WrongPrimaryCreator,
+
+    #[error("Wrong secondary creator")]
+    WrongSecondaryCreator,
+}
 
 impl From<NounsError> for ProgramError {
     fn from(error: NounsError) -> Self {
