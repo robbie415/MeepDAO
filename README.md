@@ -39,6 +39,7 @@ cargo test
 ## Instructions
 
 Initialize Nouns(0):
+
 0. `[signer, writable]` Authority (Primary creator, Payer)
 1. `[signer]` Secondary creator
 2. `[writable]` Settings account, PDA("settings\_nouns", authority, program\_id)
@@ -46,11 +47,13 @@ Initialize Nouns(0):
 4. `[]` Rent program
 
 Update Settings(1):
+
 0. `[signer]` Authority (Primary creator, Payer)
 1. `[writable]` Settings account, PDA("settings\_nouns", authority, program\_id)
 
 
 Mint NFT(2):
+
 0. `[signer, writable]` Authority (Primary creator, Payer)
 1. `[signer]` Secondary creator
 2. `[]` Settings account, PDA("settings\_nouns", authority, program\_id)
