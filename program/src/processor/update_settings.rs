@@ -1,6 +1,6 @@
 use crate::{
     instruction::SettingsArgs,
-    state::NounsSettings,
+    state::MeepSettings,
     utils::{assert_authority, get_settings_checked},
 };
 use borsh::BorshSerialize;
@@ -23,7 +23,7 @@ pub fn process_update_settings(
 
     assert_authority(&old_settings, authority_info)?;
 
-    NounsSettings {
+    MeepSettings {
         authority: *authority_info.key,
         secondary_creator: old_settings.secondary_creator,
         primary_wallet_percentage: new_settings.primary_wallet_percentage,

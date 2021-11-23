@@ -1,12 +1,12 @@
 use self::{
-    initialize_nouns::process_initialize, mint_nft::process_mint,
+    initialize_meep::process_initialize, mint_nft::process_mint,
     update_settings::process_update_settings,
 };
-use crate::instruction::NounsInstructions;
+use crate::instruction::MeepInstructions;
 use borsh::BorshDeserialize;
 use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, pubkey::Pubkey};
 
-mod initialize_nouns;
+mod initialize_meep;
 mod mint_nft;
 mod update_settings;
 
@@ -15,14 +15,14 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    let instruction = NounsInstructions::try_from_slice(instruction_data)?;
+    let instruction = MeepInstructions::try_from_slice(instruction_data)?;
     match instruction {
-        NounsInstructions::InitializeNouns(settings) => {
+        MeepInstructions::InitializeMeep(settings) => {
             process_initialize(program_id, accounts, settings)
         }
-        NounsInstructions::UpdateSettings(settings) => {
+        MeepInstructions::UpdateSettings(settings) => {
             process_update_settings(program_id, accounts, settings)
         }
-        NounsInstructions::MintNft(mint_args) => process_mint(program_id, accounts, mint_args),
+        MeepInstructions::MintNft(mint_args) => process_mint(program_id, accounts, mint_args),
     }
 }

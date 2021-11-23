@@ -1,5 +1,5 @@
 [package]
-name = "nouns"
+name = "meep"
 version = "0.1.0"
 edition = "2018"
 
@@ -22,5 +22,5 @@ solana-sdk = "=1.8.1"
 rand = "0.8.4"
 
 [lib]
-name = "nouns"
+name = "meep"
 crate-type = ["cdylib", "lib"]

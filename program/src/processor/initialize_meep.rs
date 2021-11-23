@@ -1,7 +1,7 @@
 use crate::{
-    error::NounsError,
+    error::MeepError,
     instruction::SettingsArgs,
-    state::NounsSettings,
+    state::MeepSettings,
     utils::{Pda, SETTINGS_SEED},
 };
 use borsh::BorshSerialize;
@@ -24,7 +24,7 @@ pub fn create_settings_account<'info>(
     system_program: &AccountInfo<'info>,
     rent_program: &AccountInfo<'info>,
     program_id: &Pubkey,
-    settings: &NounsSettings,
+    settings: &MeepSettings,
 ) -> ProgramResult {
     let rent = Rent::from_account_info(rent_program)?;
     let space = settings.try_to_vec()?.len();
@@ -77,14 +77,14 @@ pub fn process_initialize(
     }
 
     if authority_info.key == secondary_creator_info.key {
-        return Err(NounsError::PrimareAndSecondaryAreSame.into());
+        return Err(MeepError::PrimareAndSecondaryAreSame.into());
     }
 
     if settings_args.primary_wallet_percentage > 100 {
-        return Err(NounsError::PercentageLimitExceeded.into());
+        return Err(MeepError::PercentageLimitExceeded.into());
     }
 
-    let settings = NounsSettings {
+    let settings = MeepSettings {
         authority: *authority_info.key,
         secondary_creator: *secondary_creator_info.key,
         primary_wallet_percentage: settings_args.primary_wallet_percentage,

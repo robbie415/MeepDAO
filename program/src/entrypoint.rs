@@ -1,4 +1,4 @@
-use crate::{error::NounsError, processor};
+use crate::{error::MeepError, processor};
 use solana_program::{
     account_info::AccountInfo, entrypoint, entrypoint::ProgramResult,
     program_error::PrintProgramError, pubkey::Pubkey,
@@ -12,7 +12,7 @@ pub fn process_instruction(
     instruction_data: &[u8],
 ) -> ProgramResult {
     if let Err(error) = processor::process_instruction(program_id, accounts, instruction_data) {
-        error.print::<NounsError>();
+        error.print::<MeepError>();
         return Err(error);
     }
     Ok(())

@@ -1,5 +1,5 @@
 use crate::common::get_random_settings;
-use common::rpc_client::NounsRpcClient;
+use common::rpc_client::MeepRpcClient;
 use solana_sdk::{signature::Keypair, signer::Signer};
 
 #[allow(dead_code)]
@@ -7,7 +7,7 @@ mod common;
 
 #[test]
 fn initialization() {
-    let client = NounsRpcClient::new();
+    let client = MeepRpcClient::new();
 
     for _ in 0..10 {
         let authority = Keypair::new();
@@ -18,7 +18,7 @@ fn initialization() {
         client.airdrop(&authority, lamports);
 
         client
-            .initialize_nouns(&authority, &secondary_creator, &args)
+            .initialize_meep(&authority, &secondary_creator, &args)
             .unwrap();
 
         let another_secondary_creator = Keypair::new();
@@ -26,7 +26,7 @@ fn initialization() {
 
         // double initialization
         assert!(client
-            .initialize_nouns(&authority, &another_secondary_creator, &another_args)
+            .initialize_meep(&authority, &another_secondary_creator, &another_args)
             .is_err());
 
         let settings = client.get_settings(&authority.pubkey());

@@ -1,11 +1,11 @@
-use common::{get_random_mint_args, get_random_settings, rpc_client::NounsRpcClient};
+use common::{get_random_mint_args, get_random_settings, rpc_client::MeepRpcClient};
 use solana_sdk::{signature::Keypair, signer::Signer};
 
 mod common;
 
 #[test]
 fn mint_token() {
-    let client = NounsRpcClient::new();
+    let client = MeepRpcClient::new();
     let lamports = 1_000_000_000;
 
     for i in 1..=10 {
@@ -23,7 +23,7 @@ fn mint_token() {
         let authority_initial_balance = client.get_balance(&authority.pubkey());
 
         client
-            .initialize_nouns(&authority, &secondary_creator, &initialize_args)
+            .initialize_meep(&authority, &secondary_creator, &initialize_args)
             .unwrap();
 
         let authority_balance = client.get_balance(&authority.pubkey());

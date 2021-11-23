@@ -1,4 +1,4 @@
-use nouns::instruction::{MintNftArgs, SettingsArgs};
+use meep::instruction::{MintNftArgs, SettingsArgs};
 use rand::{thread_rng, Rng};
 use std::{thread::sleep, time::Duration};
 

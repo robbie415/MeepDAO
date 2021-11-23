@@ -1,6 +1,6 @@
 use crate::{
     instruction::MintNftArgs,
-    state::NounsSettings,
+    state::MeepSettings,
     utils::{assert_authority, assert_secondary_creator, get_settings_checked, Pda},
 };
 use metaplex_token_metadata::{
@@ -136,7 +136,7 @@ fn init_metadata<'info>(
     system_program: &AccountInfo<'info>,
     rent_program: &AccountInfo<'info>,
     metaplex_program: &AccountInfo<'info>,
-    settings: &NounsSettings,
+    settings: &MeepSettings,
     mint_args: MintNftArgs,
 ) -> ProgramResult {
     let metadata_pubkey = Pda::metadata_pubkey(mint_info.key);

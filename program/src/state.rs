@@ -2,7 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize)]
-pub struct NounsSettings {
+pub struct MeepSettings {
     pub authority: Pubkey,
     pub secondary_creator: Pubkey,
 

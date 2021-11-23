@@ -1,4 +1,4 @@
-use common::{get_random_settings, rpc_client::NounsRpcClient};
+use common::{get_random_settings, rpc_client::MeepRpcClient};
 use solana_sdk::{signature::Keypair, signer::Signer};
 
 #[allow(dead_code)]
@@ -6,7 +6,7 @@ mod common;
 
 #[test]
 fn update_test() {
-    let client = NounsRpcClient::new();
+    let client = MeepRpcClient::new();
 
     for _ in 0..10 {
         let authority = Keypair::new();
@@ -19,7 +19,7 @@ fn update_test() {
         assert!(client.update_settings(&authority, &settings).is_err());
 
         client
-            .initialize_nouns(&authority, &secondary_creator, &settings)
+            .initialize_meep(&authority, &secondary_creator, &settings)
             .unwrap();
 
         let new_settings = get_random_settings();

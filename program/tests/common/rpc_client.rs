@@ -1,11 +1,11 @@
 use super::delay;
 use borsh::BorshDeserialize;
-use metaplex_token_metadata::state::{MasterEditionV2, Metadata};
-use nouns::{
-    instruction::{MintNftArgs, NounsInstructions, SettingsArgs},
-    state::NounsSettings,
+use meep::{
+    instruction::{MeepInstructions, MintNftArgs, SettingsArgs},
+    state::MeepSettings,
     utils::Pda,
 };
+use metaplex_token_metadata::state::{MasterEditionV2, Metadata};
 use solana_client::{client_error::ClientError, rpc_client::RpcClient};
 use solana_program::{borsh::try_from_slice_unchecked, pubkey::Pubkey, system_program};
 use solana_sdk::{
@@ -17,18 +17,18 @@ use solana_sdk::{
 };
 use std::time::Duration;
 
-pub struct NounsRpcClient {
+pub struct MeepRpcClient {
     client: RpcClient,
     fee_payer: Keypair,
     program_id: Pubkey,
 }
 
-impl NounsRpcClient {
-    pub fn new() -> NounsRpcClient {
-        NounsRpcClient::new_with_program_id(&nouns::ID)
+impl MeepRpcClient {
+    pub fn new() -> MeepRpcClient {
+        MeepRpcClient::new_with_program_id(&meep::ID)
     }
 
-    pub fn new_with_program_id(program_id: &Pubkey) -> NounsRpcClient {
+    pub fn new_with_program_id(program_id: &Pubkey) -> MeepRpcClient {
         let uri = "http://localhost:8899".to_string();
         let client = RpcClient::new_with_timeout_and_commitment(
             uri,
@@ -36,7 +36,7 @@ impl NounsRpcClient {
             CommitmentConfig::confirmed(),
         );
 
-        let client = NounsRpcClient {
+        let client = MeepRpcClient {
             client,
             fee_payer: Keypair::new(),
             program_id: *program_id,
@@ -82,13 +82,13 @@ impl NounsRpcClient {
         self.client.get_balance(wallet).unwrap()
     }
 
-    pub fn initialize_nouns(
+    pub fn initialize_meep(
         &self,
         authority: &Keypair,
         secondary_creator: &Keypair,
         initialize_args: &SettingsArgs,
     ) -> Result<Signature, ClientError> {
-        let ix = NounsInstructions::initialize_nouns(
+        let ix = MeepInstructions::initialize_meep(
             &self.program_id,
             &authority.pubkey(),
             &secondary_creator.pubkey(),
@@ -111,8 +111,7 @@ impl NounsRpcClient {
         authority: &Keypair,
         settings: &SettingsArgs,
     ) -> Result<Signature, ClientError> {
-        let ix =
-            NounsInstructions::update_settings(&self.program_id, &authority.pubkey(), settings);
+        let ix = MeepInstructions::update_settings(&self.program_id, &authority.pubkey(), settings);
 
         let blockhash = self.client.get_recent_blockhash().unwrap().0;
         let tx = Transaction::new_signed_with_payer(
@@ -133,7 +132,7 @@ impl NounsRpcClient {
         token_account: &Keypair,
         mint_args: &MintNftArgs,
     ) -> Result<Signature, ClientError> {
-        let ix = NounsInstructions::mint_nft(
+        let ix = MeepInstructions::mint_nft(
             &self.program_id,
             &authority.pubkey(),
             &secondary_creator.pubkey(),
@@ -159,10 +158,10 @@ impl NounsRpcClient {
         self.client.send_and_confirm_transaction_with_spinner(&tx)
     }
 
-    pub fn get_settings(&self, authority: &Pubkey) -> NounsSettings {
+    pub fn get_settings(&self, authority: &Pubkey) -> MeepSettings {
         let settings_pubkey = Pda::settings_pubkey_with_bump(&self.program_id, authority).0;
         let settings_data = self.client.get_account_data(&settings_pubkey).unwrap();
-        NounsSettings::try_from_slice(&settings_data).unwrap()
+        MeepSettings::try_from_slice(&settings_data).unwrap()
     }
 
     pub fn get_metadata(&self, mint: &Pubkey) -> Metadata {

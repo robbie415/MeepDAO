@@ -1,4 +1,4 @@
-use crate::{error::NounsError, state::NounsSettings};
+use crate::{error::MeepError, state::MeepSettings};
 use borsh::BorshDeserialize;
 use metaplex_token_metadata::state::{EDITION, PREFIX};
 use solana_program::{
@@ -6,7 +6,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-pub const SETTINGS_SEED: &str = "nouns_settings";
+pub const SETTINGS_SEED: &str = "settings_meep";
 
 pub struct Pda;
 
@@ -41,10 +41,10 @@ pub fn get_settings_checked<'info>(
     program_id: &Pubkey,
     authority_info: &AccountInfo<'info>,
     settings_info: &AccountInfo<'info>,
-) -> Result<NounsSettings, ProgramError> {
+) -> Result<MeepSettings, ProgramError> {
     assert_settings(program_id, authority_info, settings_info)?;
-    let settings = NounsSettings::try_from_slice(&settings_info.data.borrow());
-    settings.map_err(|_| NounsError::WrongSettingsAccount.into())
+    let settings = MeepSettings::try_from_slice(&settings_info.data.borrow());
+    settings.map_err(|_| MeepError::WrongSettingsAccount.into())
 }
 
 pub fn assert_settings(
@@ -54,30 +54,30 @@ pub fn assert_settings(
 ) -> ProgramResult {
     let settings_pubkey = Pda::settings_pubkey_with_bump(program_id, authority_info.key).0;
     if *settings_info.key != settings_pubkey {
-        return Err(NounsError::WrongSettingsAccount.into());
+        return Err(MeepError::WrongSettingsAccount.into());
     }
 
     Ok(())
 }
 
-pub fn assert_authority(settings: &NounsSettings, authority_info: &AccountInfo) -> ProgramResult {
+pub fn assert_authority(settings: &MeepSettings, authority_info: &AccountInfo) -> ProgramResult {
     if !authority_info.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
     }
 
     if *authority_info.key != settings.authority {
-        return Err(NounsError::WrongAuthority.into());
+        return Err(MeepError::WrongAuthority.into());
     }
 
     Ok(())
 }
 
 pub fn assert_secondary_creator(
-    settings: &NounsSettings,
+    settings: &MeepSettings,
     secondary_creator_info: &AccountInfo,
 ) -> ProgramResult {
     if *secondary_creator_info.key != settings.secondary_creator {
-        return Err(NounsError::WrongSecondaryCreator.into());
+        return Err(MeepError::WrongSecondaryCreator.into());
     }
 
     Ok(())

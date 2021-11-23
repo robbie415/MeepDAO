@@ -1,4 +1,4 @@
-# Nouns NFT
+# Meep NFT
 
 ## Installation and Deploy
 
@@ -9,8 +9,8 @@ git clone https://git.sfxdx.ru/nouns-copy/nouns-copy-rust
 cd nouns-copy-rust
 
 cargo build-bpf
-solana program deploy --program-id ./target/deploy/quokka-keypair.json \
-    ./target/deploy/quokka.so
+solana program deploy --program-id ./target/deploy/meep-keypair.json \
+    ./target/deploy/meep.so
 ```
 
 ## Test on local Validator
@@ -38,25 +38,25 @@ cargo test
 
 ## Instructions
 
-Initialize Nouns(0):
+Initialize Meep(0):
 
 0. `[signer, writable]` Authority (Primary creator, Payer)
 1. `[signer]` Secondary creator
-2. `[writable]` Settings account, PDA("settings\_nouns", authority, program\_id)
+2. `[writable]` Settings account, PDA("settings\_meep", authority, program\_id)
 3. `[]` System program
 4. `[]` Rent program
 
 Update Settings(1):
 
 0. `[signer]` Authority (Primary creator, Payer)
-1. `[writable]` Settings account, PDA("settings\_nouns", authority, program\_id)
+1. `[writable]` Settings account, PDA("settings\_meep", authority, program\_id)
 
 
 Mint NFT(2):
 
 0. `[signer, writable]` Authority (Primary creator, Payer)
 1. `[signer]` Secondary creator
-2. `[]` Settings account, PDA("settings\_nouns", authority, program\_id)
+2. `[]` Settings account, PDA("settings\_meep", authority, program\_id)
 3. `[signer, writable]` Mint account  (Uninitialized)
 4. `[signer, writable]` Token account (Uninitialized)
 5. `[writable]` TokenMetadata account (Uninitialized)
@@ -72,5 +72,5 @@ Default program ID: `5Hu2bnTxd1mPXNHqMzFfB5SUFEvYW7GG3nPSQ1VWvTK`. It can be cha
 
 ```shell
 solana program deploy --program-id <path-to-cool-looking-program-id> \
-    ./target/deploy/nouns.so
+    ./target/deploy/meep.so
 ```

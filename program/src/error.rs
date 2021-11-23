@@ -7,7 +7,7 @@ use solana_program::{
 use thiserror::Error;
 
 #[derive(Clone, Debug, Error, FromPrimitive)]
-pub enum NounsError {
+pub enum MeepError {
     #[error("Primary and secondary creators must be different")]
     PrimareAndSecondaryAreSame,
 
@@ -27,20 +27,20 @@ pub enum NounsError {
     WrongSecondaryCreator,
 }
 
-impl From<NounsError> for ProgramError {
-    fn from(error: NounsError) -> Self {
+impl From<MeepError> for ProgramError {
+    fn from(error: MeepError) -> Self {
         ProgramError::Custom(error as u32)
     }
 }
 
-impl PrintProgramError for NounsError {
+impl PrintProgramError for MeepError {
     fn print<E>(&self) {
         msg!(&self.to_string());
     }
 }
 
-impl<T> DecodeError<T> for NounsError {
+impl<T> DecodeError<T> for MeepError {
     fn type_of() -> &'static str {
-        "Nouns Error"
+        "Meep Error"
     }
 }
