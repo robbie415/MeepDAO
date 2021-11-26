@@ -5,8 +5,8 @@
 Make sure you have installed [Solana Tool Suite](https://docs.solana.com/cli/install-solana-cli-tools) and [the Rust Toolchain](https://www.rust-lang.org/tools/install).
 
 ```shell
-git clone https://git.sfxdx.ru/nouns-copy/nouns-copy-rust
-cd nouns-copy-rust
+git clone <repository-URL> meep
+cd meep
 
 cargo build-bpf
 solana program deploy --program-id ./target/deploy/meep-keypair.json \
@@ -15,10 +15,10 @@ solana program deploy --program-id ./target/deploy/meep-keypair.json \
 
 ## Test on local Validator
 
-Clone Metaplex to a directory next to nouns-copy-rust directory:
+Clone Metaplex to a directory next to meep directory:
 
 ```shell
-cd <nouns-copy-rust parent directory>
+cd <meep's parent directory>
 git clone https://github.com/metaplex-foundation/metaplex
 cd metaplex/rust/token-metadata/program
 cargo build-bpf
@@ -26,13 +26,13 @@ cargo build-bpf
 
 Run from one terminal emulator:
 ```shell
-cd nouns-copy-rust
+cd meep
 ./scripts/init_validator_test.sh
 ```
 
 Run from another terminal emulator:
 ```shell
-cd nouns-copy-rust
+cd meep
 cargo test
 ```
 
